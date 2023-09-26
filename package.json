@@ -1,0 +1,14 @@
+{
+  "name": "atividadepwii",
+  "version": "1.0.0",
+  "description": "Nesta atividade de Programação Web II, os alunos irão criar uma aplicação web para gerenciar uma lista de frutas e um carrinho de compras utilizando a plataforma Firebase.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "firebase": "^10.4.0"
+  }
+}

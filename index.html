@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Lista de Alimentos</title>
+    <link rel="icon" href="img/cart-logo.ico" type="image/x-icon">
+    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <link href="style.css" rel="stylesheet">
+</head>
+<body>
+    <div class="container-main">
+        <header class="main-header">
+            <div class="título">
+                <h1>Lista de Frutas - Mercadinho: Amandas e Caio | </h1>
+            </div>
+            <div class="icons">
+                <i class="bx bx-cart bt-header"></i>
+            </div>
+        </header>
+    <div class="container">
+        <div class="options">
+            <h2>Lista de Opções</h2>
+            <ul id="options-list">
+            </ul>
+        </div>
+        <div class="selected">
+            <h2>Lista de Selecionados</h2>
+            <ul id="selected-list">
+            </ul>
+        </div>
+    </div>
+    <script src="script.js"></script>
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-app.js";
+        import { getFirestore, collection, getDocs, addDoc, doc, updateDoc, setDoc, getDoc} from "https://www.gstatic.com/firebasejs/10.4.0/firebase-firestore.js";
+        const firebaseConfig = {
+            apiKey: "AIzaSyCg_viCmScVdAQsdYvSXpRNA7qaMwQWWUM",
+            authDomain: "atividade-pwii.firebaseapp.com",
+            projectId: "atividade-pwii",
+            storageBucket: "atividade-pwii.appspot.com",
+            messagingSenderId: "379975381529",
+            appId: "1:379975381529:web:52683ef22e0b281456f088",
+            measurementId: "G-QGKYCJBH7G"
+        };
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const firestore = getFirestore(app);
+
+        // Função para atualizar a coleção "Carrinho" no Firebase
+// Função para atualizar a coleção "Carrinho" no Firebase
+// Função para atualizar a coleção "Carrinho" no Firebase
+// Função para atualizar a coleção "Carrinho" no Firebase
+function updateCartInFirestore(itemName, quantityChange) {
+    const cartCollection = collection(firestore, 'Carrinho');
+    const cartDocRef = doc(cartCollection, 'carrinho-document'); // Substitua 'carrinho-document' pelo documento desejado
+
+    // Atualize o documento no Firebase
+    getDoc(cartDocRef)
+        .then(docSnapshot => {
+            if (docSnapshot.exists()) {
+                // Se o documento existir, atualize os dados
+                const cartData = docSnapshot.data();
+                const currentQuantity = cartData[itemName] || 0; // Obtenha a quantidade atual ou 0 se não existir
+                const newQuantity = currentQuantity + quantityChange;
+
+                // Verifique se a nova quantidade é maior que 0
+                if (newQuantity <= 0) {
+                    // Remova a chave correspondente se a quantidade for 0 ou negativa
+                    delete cartData[itemName];
+                } else {
+                    // Caso contrário, defina a nova quantidade
+                    cartData[itemName] = newQuantity;
+                }
+
+                // Atualize o documento no Firebase Firestore com os dados atualizados
+                updateDoc(cartDocRef, cartData);
+            }
+        })
+        .catch(error => {
+            console.error('Erro ao buscar frutas:', error);
+        });
+}
+
+// Função para excluir um item do Firestore
+// Função para excluir um item do Firestore
+function deleteItemFromFirestore(itemName) {
+    const cartCollection = collection(firestore, 'Carrinho');
+    const cartDocRef = doc(cartCollection, 'carrinho-document'); // Substitua 'carrinho-document' pelo documento desejado
+
+    // Obtenha o documento atual
+    getDoc(cartDocRef)
+        .then(docSnapshot => {
+            if (docSnapshot.exists()) {
+                const cartData = docSnapshot.data();
+
+                // Verifique se o campo está presente e remova-o
+                if (cartData[itemName]) {
+                    delete cartData[itemName];
+
+                    // Defina os dados atualizados no Firestore para refletir a remoção do campo
+                    setDoc(cartDocRef, cartData)
+                        .then(() => {
+                            console.log(`Campo ${itemName} removido do Firestore.`);
+                        })
+                        .catch(error => {
+                            console.error('Erro ao atualizar o Firestore:', error);
+                        });
+                }
+            }
+        })
+        .catch(error => {
+            console.error('Erro ao buscar o documento do carrinho:', error);
+        });
+}
+
+
+
+        // Função para adicionar um item à lista de seleção
+        function addItemToSelection(itemName) {
+            const selectedList = document.getElementById('selected-list');
+
+            // Verifique se o item já está na lista de seleção
+            const existingItem = selectedList.querySelector(`li[data-name="${itemName}"]`);
+
+            if (existingItem) {
+                // Se o item já existe, incremente a quantidade
+                const quantityElement = existingItem.querySelector('.quantity');
+                let quantity = parseInt(quantityElement.textContent);
+                quantity++;
+                quantityElement.textContent = quantity;
+
+                updateCartInFirestore(itemName, quantity-1);
+            } else {
+                // Caso contrário, crie um novo item na lista de seleção
+                const newItem = document.createElement('li');
+                newItem.dataset.name = itemName;
+                newItem.innerHTML = `${itemName} <button class="remove-btn">-</button> <span class="quantity">1</span>`;
+                
+                // Adicione um manipulador de evento para remover o item
+                const removeButton = newItem.querySelector('.remove-btn');
+                removeButton.addEventListener('click', () => {
+                    removeItemFromSelection(itemName);
+                });
+
+                // Adicione o novo item à lista de seleção
+                selectedList.appendChild(newItem);
+
+                updateCartInFirestore(itemName, 1);
+            }
+        }
+
+        // Função para remover um item da lista de seleção
+        // Função para remover um item da lista de seleção
+function removeItemFromSelection(itemName) {
+    const selectedList = document.getElementById('selected-list');
+    const existingItem = selectedList.querySelector(`li[data-name="${itemName}"]`);
+
+    if (existingItem) {
+        // Decrementa a quantidade
+        const quantityElement = existingItem.querySelector('.quantity');
+        let quantity = parseInt(quantityElement.textContent);
+
+        if (quantity > 1) {
+            // Se a quantidade for maior que 1, apenas decremente
+            quantity--;
+            quantityElement.textContent = quantity;
+            updateCartInFirestore(itemName, -1);
+        } else {
+            // Se a quantidade for 1, remova o item da lista de seleção
+            selectedList.removeChild(existingItem);
+            deleteItemFromFirestore(itemName);
+        }
+    }
+    updateCartInFirestore(itemName, -1);
+}
+
+
+        function findFrutas() {
+            const frutasCollection = collection(firestore, 'Frutas');
+            const frutasList = document.getElementById('options-list'); // Elemento HTML para exibir a lista de frutas
+
+            getDocs(frutasCollection)
+                .then(querySnapshot => {
+                    querySnapshot.forEach(doc => {
+                        const data = doc.data(); // Dados do documento
+                        const nome = data.nome; // Suponha que o nome do documento está em um campo chamado "nome"
+
+                        // Crie um elemento <li> para mostrar o nome do documento
+                        const listItem = document.createElement('li');
+                        listItem.textContent = nome;
+
+                        // Crie um botão "+" dentro do <li>
+                        const addButton = document.createElement('button');
+                        addButton.className = 'add-btn';
+                        addButton.textContent = '+';
+
+                        // Adicione um manipulador de evento para o botão "+" na lista de opções
+                        addButton.addEventListener('click', function () {
+                            const itemName = nome; // Nome da fruta
+                            addItemToSelection(itemName);
+                        });
+
+                        // Adicione o botão "+" ao <li>
+                        listItem.appendChild(addButton);
+
+                        // Adicione o elemento à lista de opções
+                        frutasList.appendChild(listItem);
+                    });
+                })
+                .catch(error => {
+                    console.error('Erro ao buscar frutas:', error);
+                });
+        }
+
+        // Chame a função para buscar e exibir frutas
+        findFrutas();
+    </script>
+</body>
+</html>
+
