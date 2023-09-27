@@ -130,7 +130,7 @@ function deleteItemFromFirestore(itemName) {
                 quantity++;
                 quantityElement.textContent = quantity;
 
-                updateCartInFirestore(itemName, quantity-1);
+                updateCartInFirestore(itemName, +1);
             } else {
                 // Caso contrário, crie um novo item na lista de seleção
                 const newItem = document.createElement('li');
